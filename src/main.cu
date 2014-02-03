@@ -17,7 +17,8 @@ int main(int argc, char** argv){
 	
 	namedWindow("Original", CV_WINDOW_AUTOSIZE);
 	imshow("Original", matSource);
-	
+	cout<<"rows: "<<matSource.rows<<endl;
+	cout<<"cols: "<<MatSource.cols<<endl;
 	
 	waitKey(0);
 	return 0;
