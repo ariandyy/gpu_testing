@@ -1,19 +1,25 @@
 #include <iostream>
+#include <iomanip>
 #include <cuda.h>
 #include <opencv2/opencv.hpp>
 
 using namespace std;
 using namespace cv;
 
-void calcCornerBlockHist(const Mat src, int blockSizeX, int blockSizeY, unsigned char * outHist){
+__global__ void parCalcCornerBlockHist(){
+	
+}
+
+
+void calcCornerBlockHist(const Mat src, int blockSizeX, int blockSizeY, int beginX, int beginY, unsigned char * outHist){
 	unsigned char *input = (unsigned char*) src.data;
 	int count = 0;
-	int histIdx;
-	for (int j = 0; j < blockSizeY; j++){
-		for (int i = 0; i < blockSizeX; i++){
-			histIdx = input[src.rows * j + i];
-			cout<<"index = "<<src.rows * j + i<<endl;
-			outHist[histIdx]++;
+	int bin;
+	for (int j = beginY; j < beginY + blockSizeY; j++){
+		for (int i = beginX; i < beginX + blockSizeX; i++){
+			bin = input[src.rows * j + i];
+			//cout<<"index = "<<src.rows * j + i<<endl;
+			outHist[bin]++;
 			count++;
 		}
 	}
@@ -28,6 +34,8 @@ int main(int argc, char** argv){
 		return -1;
 	}
 	
+	cudaEvent_t start, stop;
+	
 	Mat matSource;
 	matSource = imread(argv[1], 0);
 	
@@ -35,30 +43,46 @@ int main(int argc, char** argv){
 	
 	//namedWindow("Original", CV_WINDOW_AUTOSIZE);
 	//imshow("Original", matSource);
-	cout<<"rows: "<<matSource.rows<<endl;
-	cout<<"cols: "<<matSource.cols<<endl;
+	cout<<"source rows: "<<matSource.rows<<endl;
+	cout<<"source cols: "<<matSource.cols<<endl;
 	
-	calcCornerBlockHist(matSource, 4, 4, hist);
+	// timer
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+	cudaEventRecord(start, 0);
+	
+	// function call
+	calcCornerBlockHist(matSource, 32, 32, 0, 0, hist);
+	// for 128x128 block size, why total occurences is less than 128x128=16384?
+	
+	// timer
+	cudaEventRecord(stop, 0);
+	cudaEventSynchronize(stop);
+	float elapsedTime;
+	cudaEventElapsedTime(&elapsedTime, start, stop);
+	cout<<"CPU histogram took "<<setprecision(5)<<elapsedTime<<" ms"<<endl;
 	
 	cout<<"histogram"<<endl;
 	float mean = 0;
+	float sum = 0;
+	int occurences = 0;
 	for (int i = 0; i < 256; i++){
-		cout<<(int)hist[i]<<" ";
-		mean += (float)hist[i];
+		cout<<(int)hist[i]<<"+";
+		sum += (float)i * hist[i];
+		occurences += hist[i];
 	}
+	mean = sum/occurences;
 	cout<<endl;
-	
-	cout<<"mean = "<<(float)mean/256.0;
+	cout<<"sum = "<<sum<<endl;
+	cout<<"occurences = "<<occurences<<endl;
+	cout<<"mean = "<<mean<<endl;
+	//cout<<"mean = "<<mean/256.0;
 	
 	cout<<endl;
 	//waitKey(0);
 	
-	cudaDeviceProp prop;
-	int count;
-	cudaGetDeviceCount(&count);
-	cout<<"devices = "<<count<<endl;
-	cudaGetDeviceProperties(&prop, 0);
-	cout<<"name = "<<prop.name<<endl;
-	cout<<"max threads per block = "<<prop.maxThreadsPerBlock<<endl;
+	// cuda
+	
+	
 	return 0;
 }
