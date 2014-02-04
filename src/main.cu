@@ -49,7 +49,7 @@ void processHistogram(unsigned char * hist, int max){
 	cout<<endl;
 	cout<<"sum = "<<sum<<endl;
 	cout<<"occurences = "<<occurences<<endl;
-	cout<<"mean = "<<mean<<endl;
+	cout<<"mean = "<<setprecision(5)<<mean<<endl;
 }
 
 void processHistogram(unsigned int * hist, int max){
@@ -66,7 +66,7 @@ void processHistogram(unsigned int * hist, int max){
 	cout<<endl;
 	cout<<"sum = "<<sum<<endl;
 	cout<<"occurences = "<<occurences<<endl;
-	cout<<"mean = "<<mean<<endl;
+	cout<<"mean = "<<setprecision(5)<<mean<<endl;
 }
 
 int main(int argc, char** argv){
@@ -83,7 +83,7 @@ int main(int argc, char** argv){
 	
 	int blockSizeX = 32;
 	int blockSizeY = 32;
-	int startX = 128;
+	int startX = 0;
 	int startY = 0;
 	
 	
